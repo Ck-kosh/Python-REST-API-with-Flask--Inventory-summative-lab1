@@ -1,0 +1,20 @@
+# Inventory Management System - Dependencies
+# Author: Kosh
+# Repository: https://github.com/Ck-kosh/Python-REST-API-with-Flask--Inventory-summative-lab1.git
+
+# Flask Framework
+Flask==3.0.3
+Flask-CORS==4.0.1
+
+# HTTP Requests for External API
+requests==2.31.0
+
+# Testing
+pytest==8.2.2
+pytest-cov==5.0.0
+
+# Development
+python-dotenv==1.0.1
+
+# WSGI Server (for production)
+Werkzeug==3.0.3
