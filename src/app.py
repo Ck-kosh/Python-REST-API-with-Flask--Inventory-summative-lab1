@@ -4,7 +4,7 @@ Author: Kosh
 Repository: https://github.com/Ck-kosh/Python-REST-API-with-Flask--Inventory-summative-lab1.git
 """
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 import requests
 import uuid
@@ -108,7 +108,44 @@ def fetch_product_by_name(product_name):
 
 @app.route('/')
 def home():
-    """Root endpoint - API information"""
+    """Root endpoint - API information or a browser-friendly landing page"""
+    if request.accept_mimetypes.best == 'text/html':
+        html = """
+        <!doctype html>
+        <html lang="en">
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>Inventory Management System</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f7f9fc; color: #1f2937; }
+                .container { max-width: 900px; margin: 40px auto; background: white; padding: 32px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+                h1 { color: #2563eb; }
+                code { background: #eef2ff; padding: 2px 6px; border-radius: 4px; }
+                ul { line-height: 1.7; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>Inventory Management System</h1>
+                <p>This application provides a Flask REST API for managing inventory items and enriching them with OpenFoodFacts data.</p>
+                <h2>Available endpoints</h2>
+                <ul>
+                    <li><code>GET /inventory</code> - view all inventory items</li>
+                    <li><code>GET /inventory/&lt;id&gt;</code> - view one item</li>
+                    <li><code>POST /inventory</code> - add an item</li>
+                    <li><code>PATCH /inventory/&lt;id&gt;</code> - update an item</li>
+                    <li><code>DELETE /inventory/&lt;id&gt;</code> - delete an item</li>
+                    <li><code>GET /api/search/barcode/&lt;barcode&gt;</code> - search by barcode</li>
+                    <li><code>GET /api/search/name/&lt;name&gt;</code> - search by name</li>
+                </ul>
+                <p>Use the API endpoints directly for data operations, or visit the JSON routes from tools like Postman or curl.</p>
+            </div>
+        </body>
+        </html>
+        """
+        return Response(html, mimetype='text/html')
+
     return jsonify({
         "message": "Inventory Management System API",
         "version": "1.0.0",
