@@ -267,20 +267,7 @@ inventory-management-system/
 2. **Name Search**: Search by product name with partial matching
 3. **Data Enrichment**: Automatically populate product details from API
 
-### Data Mapping
 
-| OpenFoodFacts Field | Inventory Field | Description |
-|---------------------|-----------------|-------------|
-| `product_name` | `product_name` | Product name |
-| `brands` | `brand` | Brand/manufacturer |
-| `ingredients_text` | `description` | Ingredients list |
-| `categories` | `category` | Product category |
-| `nutriscore_grade` | `nutriscore_grade` | Nutrition grade (A-E) |
-| `image_url` | `image_url` | Product image URL |
-| `quantity` | `quantity` | Package size |
-| `code` | `barcode` | Product barcode |
-
----
 
 ## Git Workflow
 
@@ -342,9 +329,6 @@ This project has no license
 ## Contact
 
 - Author: Kosh
-- GitHub: https://github.com/Ck-kosh
-- Repository: https://github.com/Ck-kosh/Python-REST-API-with-Flask--Inventory-summative-lab1.git
 
----
 
 *Built with Flask, Python, and the OpenFoodFacts API*

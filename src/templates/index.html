@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventory Management System</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    :root {
+      --purple: #7c3aed;
+      --purple-dark: #5b21b6;
+      --purple-light: #ede9fe;
+      --red: #dc2626;
+      --red-light: #fee2e2;
+      --blue: #1d4ed8;
+      --blue-light: #dbeafe;
+      --black: #0f0f0f;
+      --dark: #1a1a2e;
+      --dark2: #16213e;
+      --surface: #ffffff;
+      --bg: #f3f0ff;
+      --border: #d8b4fe;
+      --text-muted: #6b7280;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--black);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, var(--dark) 0%, var(--purple-dark) 60%, var(--blue) 100%);
+      color: white;
+      padding: 0 32px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 20px rgba(124,58,237,0.4);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    header h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    header h1 span { color: #c4b5fd; }
+    header .tagline {
+      font-size: 0.78rem;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 4px 12px;
+      border-radius: 999px;
+      letter-spacing: 0.03em;
+    }
+
+    /* ── Stats ── */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      padding: 24px 32px 8px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border-radius: 14px;
+      padding: 18px 20px;
+      border-left: 4px solid var(--purple);
+      box-shadow: 0 2px 12px rgba(124,58,237,0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card:nth-child(2) { border-left-color: var(--blue); }
+    .stat-card:nth-child(3) { border-left-color: #7c3aed; }
+    .stat-card:nth-child(4) { border-left-color: var(--red); }
+    .stat-card::after {
+      content: '';
+      position: absolute;
+      top: -20px; right: -20px;
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: rgba(124,58,237,0.06);
+    }
+    .stat-card .label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .stat-card .value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--purple-dark);
+      margin-top: 6px;
+      line-height: 1;
+    }
+    .stat-card:nth-child(2) .value { color: var(--blue); }
+    .stat-card:nth-child(4) .value { color: var(--red); }
+
+    /* ── Main ── */
+    .main { padding: 16px 32px 40px; }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .toolbar input, .toolbar select {
+      padding: 9px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.875rem;
+      outline: none;
+      background: white;
+      color: var(--black);
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .toolbar input:focus, .toolbar select:focus {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.15);
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      padding: 9px 18px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      transition: transform .1s, box-shadow .2s;
+    }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .btn:active { transform: translateY(0); }
+    .btn-primary  { background: linear-gradient(135deg, var(--purple), var(--blue)); color: white; }
+    .btn-success  { background: linear-gradient(135deg, var(--purple-dark), var(--purple)); color: white; }
+    .btn-warning  { background: linear-gradient(135deg, var(--blue), #6366f1); color: white; }
+    .btn-danger   { background: linear-gradient(135deg, var(--red), #b91c1c); color: white; }
+    .btn-secondary{ background: var(--dark); color: white; }
+    .btn-sm { padding: 5px 12px; font-size: 0.78rem; border-radius: 8px; }
+
+    /* ── Table ── */
+    .table-wrap {
+      background: var(--surface);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(124,58,237,0.1);
+      border: 1px solid var(--purple-light);
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead {
+      background: linear-gradient(90deg, var(--dark) 0%, var(--purple-dark) 100%);
+      color: white;
+    }
+    th {
+      padding: 14px 16px;
+      text-align: left;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+    td { padding: 13px 16px; font-size: 0.875rem; border-bottom: 1px solid #f3f0ff; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: var(--purple-light); transition: background .15s; }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    .badge-a { background: #d1fae5; color: #065f46; }
+    .badge-b { background: var(--blue-light); color: #1e3a8a; }
+    .badge-c { background: #fef3c7; color: #92400e; }
+    .badge-d { background: #ffedd5; color: #9a3412; }
+    .badge-e { background: var(--red-light); color: #991b1b; }
+    .badge-na { background: var(--purple-light); color: var(--purple-dark); }
+    .low-stock { color: var(--red); font-weight: 700; }
+
+    /* ── Search Panel ── */
+    .search-panel {
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 22px 24px;
+      margin-bottom: 20px;
+      border: 1px solid var(--purple-light);
+      box-shadow: 0 4px 24px rgba(124,58,237,0.08);
+    }
+    .search-panel h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+      color: var(--purple-dark);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .search-panel h3::before {
+      content: '';
+      display: inline-block;
+      width: 4px; height: 18px;
+      background: linear-gradient(var(--purple), var(--blue));
+      border-radius: 4px;
+    }
+    .search-results { margin-top: 16px; }
+    .result-card {
+      border: 1.5px solid var(--purple-light);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 10px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      background: #faf8ff;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .result-card:hover {
+      border-color: var(--purple);
+      box-shadow: 0 2px 12px rgba(124,58,237,0.12);
+    }
+    .result-card img {
+      width: 60px; height: 60px;
+      object-fit: contain;
+      border-radius: 8px;
+      background: white;
+      border: 1px solid var(--purple-light);
+      padding: 4px;
+    }
+    .result-card .info { flex: 1; }
+    .result-card .info strong { font-size: 0.9rem; color: var(--dark); }
+    .result-card .info p { font-size: 0.78rem; color: var(--text-muted); margin-top: 3px; }
+
+    /* ── Modal ── */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15,15,15,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .overlay.active { display: flex; }
+    .modal {
+      background: var(--surface);
+      border-radius: 18px;
+      padding: 32px;
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(124,58,237,0.25);
+      border-top: 4px solid var(--purple);
+    }
+    .modal h2 {
+      margin-bottom: 20px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--purple-dark);
+    }
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--purple-dark);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 9px 13px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.9rem;
+      outline: none;
+      color: var(--black);
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.15);
+    }
+    .form-row { display: flex; gap: 12px; }
+    .form-row .form-group { flex: 1; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      background: linear-gradient(135deg, var(--dark), var(--purple-dark));
+      color: white;
+      padding: 13px 22px;
+      border-radius: 12px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity .3s, transform .3s;
+      transform: translateY(10px);
+      z-index: 200;
+      pointer-events: none;
+      box-shadow: 0 8px 24px rgba(124,58,237,0.3);
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+
+    /* ── Empty State ── */
+    .empty-state { text-align: center; padding: 56px; color: var(--text-muted); }
+    .empty-state::before { content: '📭'; font-size: 2.5rem; display: block; margin-bottom: 12px; }
+    .empty-state p { font-size: 0.9rem; }
+
+    @media (max-width: 768px) {
+      .stats-bar { grid-template-columns: repeat(2, 1fr); }
+      header { padding: 0 16px; }
+      .main { padding: 12px 16px 32px; }
+      .stats-bar { padding: 16px 16px 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>📦 Inventory Management System</h1>
+  <span>Powered by Flask &amp; OpenFoodFacts</span>
+</header>
+
+<!-- Stats -->
+<div class="stats-bar" id="statsBar">
+  <div class="stat-card"><div class="label">Total Items</div><div class="value" id="statTotal">—</div></div>
+  <div class="stat-card"><div class="label">Total Value</div><div class="value" id="statValue">—</div></div>
+  <div class="stat-card"><div class="label">Categories</div><div class="value" id="statCats">—</div></div>
+  <div class="stat-card"><div class="label">Low Stock</div><div class="value" id="statLow" style="color:#dc2626">—</div></div>
+</div>
+
+<div class="main">
+
+  <!-- OpenFoodFacts Search Panel -->
+  <div class="search-panel">
+    <h3>🔍 Search OpenFoodFacts</h3>
+    <div class="toolbar" style="margin-bottom:0">
+      <input id="searchInput" type="text" placeholder="Product name or barcode…" style="flex:1;min-width:200px" />
+      <select id="searchType">
+        <option value="name">By Name</option>
+        <option value="barcode">By Barcode</option>
+      </select>
+      <button class="btn btn-primary" onclick="searchOFF()">Search</button>
+    </div>
+    <div class="search-results" id="searchResults"></div>
+  </div>
+
+  <!-- Inventory Table -->
+  <div class="toolbar">
+    <input id="filterInput" type="text" placeholder="Filter by name…" oninput="filterTable()" style="flex:1;min-width:180px" />
+    <select id="filterCategory" onchange="filterTable()">
+      <option value="">All Categories</option>
+    </select>
+    <button class="btn btn-success" onclick="openAddModal()">+ Add Item</button>
+    <button class="btn btn-secondary" onclick="seedDB()">Seed Data</button>
+    <button class="btn btn-danger" onclick="clearDB()">Clear All</button>
+  </div>
+
+  <table id="inventoryTable">
+    <thead>
+      <tr>
+        <th>Product</th><th>Brand</th><th>Category</th>
+        <th>Stock</th><th>Price</th><th>Nutriscore</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody">
+      <tr><td colspan="7"><div class="empty-state"><p>Loading inventory…</p></div></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Add / Edit Modal -->
+<div class="overlay" id="itemModal">
+  <div class="modal">
+    <h2 id="modalTitle">Add New Item</h2>
+    <input type="hidden" id="editId" />
+    <div class="form-row">
+      <div class="form-group">
+        <label>Product Name *</label>
+        <input id="f_name" type="text" placeholder="e.g. Almond Milk" />
+      </div>
+      <div class="form-group">
+        <label>Brand</label>
+        <input id="f_brand" type="text" placeholder="e.g. Silk" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Category</label>
+        <input id="f_category" type="text" placeholder="e.g. Beverages" />
+      </div>
+      <div class="form-group">
+        <label>Barcode</label>
+        <input id="f_barcode" type="text" placeholder="EAN/UPC" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Stock Level *</label>
+        <input id="f_stock" type="number" min="0" placeholder="0" />
+      </div>
+      <div class="form-group">
+        <label>Price (USD) *</label>
+        <input id="f_price" type="number" step="0.01" min="0" placeholder="0.00" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Description</label>
+      <textarea id="f_desc" rows="2" placeholder="Ingredients or description…"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveItem()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add-from-API Modal -->
+<div class="overlay" id="apiModal">
+  <div class="modal">
+    <h2>Add from OpenFoodFacts</h2>
+    <p style="font-size:.85rem;color:#64748b;margin-bottom:14px">
+      Product: <strong id="apiProductName"></strong>
+    </p>
+    <input type="hidden" id="apiBarcode" />
+    <div class="form-row">
+      <div class="form-group">
+        <label>Stock Level *</label>
+        <input id="api_stock" type="number" min="0" placeholder="0" />
+      </div>
+      <div class="form-group">
+        <label>Price (USD) *</label>
+        <input id="api_price" type="number" step="0.01" min="0" placeholder="0.00" />
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeApiModal()">Cancel</button>
+      <button class="btn btn-success" onclick="addFromApi()">Add to Inventory</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  const API = '';  // same origin
+  let allItems = [];
+
+  // ── Utilities ──────────────────────────────────────────────────────────────
+  function toast(msg, color = '#1e293b') {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.style.background = color;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  function nutriBadge(g) {
+    const grade = (g || 'N/A').toLowerCase();
+    const cls = ['a','b','c','d','e'].includes(grade) ? `badge-${grade}` : 'badge-na';
+    return `<span class="badge ${cls}">${grade.toUpperCase()}</span>`;
+  }
+
+  // ── Stats ──────────────────────────────────────────────────────────────────
+  async function loadStats() {
+    const r = await fetch(`${API}/inventory/stats`);
+    const d = await r.json();
+    if (d.status === 'success') {
+      document.getElementById('statTotal').textContent = d.stats.total_items;
+      document.getElementById('statValue').textContent = '$' + d.stats.total_inventory_value.toFixed(2);
+      document.getElementById('statCats').textContent = d.stats.categories.length;
+      document.getElementById('statLow').textContent = d.stats.low_stock_items.length;
+    }
+  }
+
+  // ── Inventory Table ────────────────────────────────────────────────────────
+  async function loadInventory() {
+    const r = await fetch(`${API}/inventory`);
+    const d = await r.json();
+    allItems = d.data || [];
+    populateCategoryFilter();
+    renderTable(allItems);
+    loadStats();
+  }
+
+  function populateCategoryFilter() {
+    const sel = document.getElementById('filterCategory');
+    const cats = [...new Set(allItems.map(i => i.category).filter(Boolean))].sort();
+    sel.innerHTML = '<option value="">All Categories</option>' +
+      cats.map(c => `<option value="${c}">${c}</option>`).join('');
+  }
+
+  function renderTable(items) {
+    const tbody = document.getElementById('tableBody');
+    if (!items.length) {
+      tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><p>No items found. Add some or seed the database.</p></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = items.map(item => `
+      <tr>
+        <td><strong>${item.product_name}</strong></td>
+        <td>${item.brand || '—'}</td>
+        <td>${item.category || '—'}</td>
+        <td class="${item.stock_level < 10 ? 'low-stock' : ''}">${item.stock_level}</td>
+        <td>$${parseFloat(item.price).toFixed(2)}</td>
+        <td>${nutriBadge(item.nutriscore_grade)}</td>
+        <td>
+          <button class="btn btn-warning btn-sm" onclick="openEditModal('${item.id}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteItem('${item.id}')">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function filterTable() {
+    const text = document.getElementById('filterInput').value.toLowerCase();
+    const cat  = document.getElementById('filterCategory').value;
+    const filtered = allItems.filter(i =>
+      (!text || i.product_name.toLowerCase().includes(text)) &&
+      (!cat  || i.category === cat)
+    );
+    renderTable(filtered);
+  }
+
+  // ── Add / Edit Modal ───────────────────────────────────────────────────────
+  function openAddModal() {
+    document.getElementById('modalTitle').textContent = 'Add New Item';
+    ['editId','f_name','f_brand','f_category','f_barcode','f_stock','f_price','f_desc']
+      .forEach(id => document.getElementById(id).value = '');
+    document.getElementById('itemModal').classList.add('active');
+  }
+
+  function openEditModal(id) {
+    const item = allItems.find(i => i.id === id);
+    if (!item) return;
+    document.getElementById('modalTitle').textContent = 'Edit Item';
+    document.getElementById('editId').value    = item.id;
+    document.getElementById('f_name').value    = item.product_name;
+    document.getElementById('f_brand').value   = item.brand || '';
+    document.getElementById('f_category').value= item.category || '';
+    document.getElementById('f_barcode').value = item.barcode || '';
+    document.getElementById('f_stock').value   = item.stock_level;
+    document.getElementById('f_price').value   = item.price;
+    document.getElementById('f_desc').value    = item.description || '';
+    document.getElementById('itemModal').classList.add('active');
+  }
+
+  function closeModal() {
+    document.getElementById('itemModal').classList.remove('active');
+  }
+
+  async function saveItem() {
+    const id = document.getElementById('editId').value;
+    const body = {
+      product_name: document.getElementById('f_name').value.trim(),
+      brand:        document.getElementById('f_brand').value.trim(),
+      category:     document.getElementById('f_category').value.trim(),
+      barcode:      document.getElementById('f_barcode').value.trim(),
+      stock_level:  parseInt(document.getElementById('f_stock').value) || 0,
+      price:        parseFloat(document.getElementById('f_price').value) || 0,
+      description:  document.getElementById('f_desc').value.trim(),
+    };
+    if (!body.product_name) { toast('Product name is required', '#dc2626'); return; }
+
+    const url    = id ? `${API}/inventory/${id}` : `${API}/inventory`;
+    const method = id ? 'PATCH' : 'POST';
+    const r = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    const d = await r.json();
+    if (d.status === 'success') {
+      toast(id ? 'Item updated ✓' : 'Item added ✓', '#16a34a');
+      closeModal(); loadInventory();
+    } else {
+      toast(d.message || 'Error', '#dc2626');
+    }
+  }
+
+  // ── Delete ─────────────────────────────────────────────────────────────────
+  async function deleteItem(id) {
+    if (!confirm('Delete this item?')) return;
+    const r = await fetch(`${API}/inventory/${id}`, { method: 'DELETE' });
+    const d = await r.json();
+    if (d.status === 'success') { toast('Item deleted', '#d97706'); loadInventory(); }
+    else toast(d.message || 'Error', '#dc2626');
+  }
+
+  // ── Seed / Clear ───────────────────────────────────────────────────────────
+  async function seedDB() {
+    const r = await fetch(`${API}/inventory/seed`, { method: 'POST' });
+    const d = await r.json();
+    if (d.status === 'success') { toast('Database seeded ✓', '#16a34a'); loadInventory(); }
+    else toast(d.message || 'Error', '#dc2626');
+  }
+
+  async function clearDB() {
+    if (!confirm('Clear ALL inventory items?')) return;
+    const r = await fetch(`${API}/inventory/clear`, { method: 'DELETE' });
+    const d = await r.json();
+    if (d.status === 'success') { toast('Inventory cleared', '#d97706'); loadInventory(); }
+    else toast(d.message || 'Error', '#dc2626');
+  }
+
+  // ── OpenFoodFacts Search ───────────────────────────────────────────────────
+  async function searchOFF() {
+    const q    = document.getElementById('searchInput').value.trim();
+    const type = document.getElementById('searchType').value;
+    if (!q) { toast('Enter a search term', '#d97706'); return; }
+
+    const url = type === 'barcode'
+      ? `${API}/api/search/barcode/${encodeURIComponent(q)}`
+      : `${API}/api/search/name/${encodeURIComponent(q)}`;
+
+    const container = document.getElementById('searchResults');
+    container.innerHTML = '<p style="color:#64748b;font-size:.85rem">Searching…</p>';
+
+    const r = await fetch(url);
+    const d = await r.json();
+
+    if (d.status !== 'success') {
+      container.innerHTML = `<p style="color:#dc2626;font-size:.85rem">${d.message}</p>`;
+      return;
+    }
+
+    const products = Array.isArray(d.data) ? d.data : [d.data];
+    container.innerHTML = products.map(p => `
+      <div class="result-card">
+        ${p.image_url ? `<img src="${p.image_url}" alt="" onerror="this.style.display='none'" />` : ''}
+        <div class="info">
+          <strong>${p.product_name || 'Unknown'}</strong>
+          <p>${p.brands || p.brand || '—'} · ${p.categories || '—'}</p>
+          <p>Barcode: ${p.barcode || q} · Nutriscore: ${(p.nutriscore_grade || 'N/A').toUpperCase()}</p>
+        </div>
+        <button class="btn btn-success btn-sm"
+          onclick="openApiModal('${(p.barcode || q).replace(/'/g,"\\'")}','${(p.product_name||'').replace(/'/g,"\\'")}')">
+          + Add
+        </button>
+      </div>
+    `).join('');
+  }
+
+  // ── Add-from-API Modal ─────────────────────────────────────────────────────
+  function openApiModal(barcode, name) {
+    document.getElementById('apiBarcode').value = barcode;
+    document.getElementById('apiProductName').textContent = name;
+    document.getElementById('api_stock').value = '';
+    document.getElementById('api_price').value = '';
+    document.getElementById('apiModal').classList.add('active');
+  }
+
+  function closeApiModal() {
+    document.getElementById('apiModal').classList.remove('active');
+  }
+
+  async function addFromApi() {
+    const body = {
+      barcode:     document.getElementById('apiBarcode').value,
+      stock_level: parseInt(document.getElementById('api_stock').value) || 0,
+      price:       parseFloat(document.getElementById('api_price').value) || 0,
+    };
+    const r = await fetch(`${API}/api/inventory/add-from-api`, {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    if (d.status === 'success') {
+      toast('Added from OpenFoodFacts ✓', '#16a34a');
+      closeApiModal(); loadInventory();
+    } else {
+      toast(d.message || 'Error', '#dc2626');
+    }
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  loadInventory();
+</script>
+</body>
+</html>
